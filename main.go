@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,12 +12,94 @@ import (
 )
 
 func main() {
+	flagHelp := flag.Bool("help", false, "print this help")
+	flagColor := flag.Bool("color", true, "enable color")
+	flagAll := flag.Bool("all", false, "print all branches")
+
+	flag.Parse()
+
+	if *flagHelp {
+		flag.Usage()
+		return
+	}
+
+	if !*flagColor {
+		color.NoColor = true
+	}
+
+	all := *flagAll
+
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error getting current directory: %v", err)
 		os.Exit(1)
 	}
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+
+	repos, err := getRepos(dir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error getting git worktrees: %v", err)
+		os.Exit(1)
+	}
+
+	nameWidth, upstreamWidth := maxColumnWidths(repos)
+
+	for _, r := range repos {
+		if !all && !r.ChangesNotPushed() {
+			continue
+		}
+		relPath, err := filepath.Rel(dir, r.path)
+		if err != nil {
+			relPath = r.path
+		}
+		fmt.Printf("%s%c\n", relPath, filepath.Separator)
+		for _, b := range r.branches {
+			if !all && !b.ChangesNotPushed() {
+				continue
+			}
+
+			dirty, ahead, behind := iconChars(b)
+			upstream := b.upstream
+			if upstream == "" {
+				upstream = color.HiRedString("<none>")
+			}
+
+			icons := color.HiRedString("%c%c%c", dirty, ahead, behind)
+
+			fmt.Printf("  %-*s %s %-*s\n", nameWidth, b.name, icons, upstreamWidth, upstream)
+		}
+	}
+}
+
+type repo struct {
+	path     string
+	branches []branch
+}
+
+func (r repo) ChangesNotPushed() bool {
+	for _, b := range r.branches {
+		if b.ChangesNotPushed() {
+			return true
+		}
+	}
+	return false
+}
+
+type branch struct {
+	head     bool
+	name     string
+	dirty    bool
+	ahead    bool
+	behind   bool
+	upstream string
+}
+
+func (b branch) ChangesNotPushed() bool {
+	return b.dirty || b.ahead || b.behind || b.upstream == ""
+}
+
+func getRepos(dir string) ([]repo, error) {
+	repos := []repo{}
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -30,22 +113,30 @@ func main() {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(dir, path)
-		if err != nil {
-			relPath = path
-		}
-		fmt.Printf("%s:\n", color.CyanString(relPath))
-		cmdBranches(path)
+		repo, err := getRepo(path)
+
+		repos = append(repos, repo)
 
 		return filepath.SkipDir
 	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v", err)
-		os.Exit(1)
-	}
+	return repos, err
 }
 
-func cmdDirtyStatus(path string) string {
+func getRepo(path string) (repo, error) {
+	branches, err := getBranches(path)
+	if err != nil {
+		return repo{}, err
+	}
+
+	r := repo{
+		path:     path,
+		branches: branches,
+	}
+
+	return r, nil
+}
+
+func isDirty(path string) (bool, error) {
 	out := strings.Builder{}
 	cmd := exec.Command("git", "--no-pager", "status", "--porcelain")
 	cmd.Dir = path
@@ -53,40 +144,74 @@ func cmdDirtyStatus(path string) string {
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v", err)
+		return false, err
 	}
-	if out.Len() > 0 {
-		return "M"
-	}
-	return " "
+	return out.Len() > 0, nil
 }
 
-func cmdBranches(path string) {
+func getBranches(path string) ([]branch, error) {
+	dirty, err := isDirty(path)
+	if err != nil {
+		return nil, err
+	}
+
+	out := strings.Builder{}
 	cmd := exec.Command(
-		"git",
-		"--no-pager",
-		"branch",
-		"-vv",
-		"--color",
-		"--sort=committerdate",
-		"--format="+
-			"  "+
-			"%(align:20,left)%(refname:short)%(end)"+
-			"%(align:3,left)%(color:bold red)"+
-			"%(if)%(HEAD)%(then)"+cmdDirtyStatus(path)+"%(else) %(end)"+
-			"%(if:equals=>)%(upstream:trackshort)%(then)↑ %(end)"+
-			"%(if:equals=<)%(upstream:trackshort)%(then) ↓%(end)"+
-			"%(if:equals=<>)%(upstream:trackshort)%(then)↑↓%(end)"+
-			"%(if:equals==)%(upstream:trackshort)%(then)  %(end)"+
-			"%(if:equals=)%(upstream:trackshort)%(then)  %(end)"+
-			"%(color:reset) %(end)"+
-			"%(align:20,left)%(if)%(upstream:short)%(then)%(upstream:short)%(else)%(color:bold red)no upstream%(color:reset)%(end)%(end)",
+		"git", "--no-pager", "branch", "--sort=committerdate",
+		"--format=%(HEAD):%(refname:short):%(upstream:trackshort):%(upstream:short)",
 	)
 	cmd.Dir = path
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v", err)
+		return nil, err
 	}
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	branches := make([]branch, len(lines))
+	for i, l := range lines {
+		f := strings.Split(l, ":")
+		branches[i] = branch{
+			head:     f[0] == "*",
+			dirty:    f[0] == "*" && dirty,
+			name:     f[1],
+			ahead:    f[2] == ">" || f[2] == "<>",
+			behind:   f[2] == "<" || f[2] == "<>",
+			upstream: f[3],
+		}
+	}
+
+	return branches, nil
+
+}
+
+func maxColumnWidths(repos []repo) (nameWidth, upstreamWidth int) {
+	for _, r := range repos {
+		for _, b := range r.branches {
+			if len(b.name) > nameWidth {
+				nameWidth = len(b.name)
+			}
+			if len(b.upstream) > upstreamWidth {
+				upstreamWidth = len(b.upstream)
+			}
+		}
+	}
+	return
+}
+
+func iconChars(b branch) (dirty, ahead, behind rune) {
+	dirty = ' '
+	if b.dirty {
+		dirty = 'M'
+	}
+	ahead = ' '
+	if b.ahead {
+		ahead = '↑'
+	}
+	behind = ' '
+	if b.behind {
+		behind = '↓'
+	}
+	return dirty, ahead, behind
 }
