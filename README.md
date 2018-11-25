@@ -22,8 +22,12 @@ Print a list of repositories in the current directory that have branches not
 pushed upstream, or dirty working directories:
 
 ```
-gs
+gs [-e] [-a]
 ```
+
+Add `-e` to exit with an error code if there are changes not pushed.
+
+Add `-a` to print all branches.
 
 Example:
 
@@ -40,10 +44,3 @@ helloworld/
   add-vcr              ↑↓ origin/add-vcr
 ```
 
-## Usage (all)
-
-Print all branches:
-
-```
-gs -all
-```

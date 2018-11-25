@@ -13,8 +13,9 @@ import (
 
 func main() {
 	flagHelp := flag.Bool("help", false, "print this help")
-	flagColor := flag.Bool("color", true, "enable color")
-	flagAll := flag.Bool("all", false, "print all branches")
+	flagNoColor := flag.Bool("no-color", false, "disable color")
+	flagErrorCode := flag.Bool("e", false, "exit with error code if changes not pushed")
+	flagAll := flag.Bool("a", false, "print all branches")
 
 	flag.Parse()
 
@@ -23,11 +24,12 @@ func main() {
 		return
 	}
 
-	if !*flagColor {
+	if *flagNoColor {
 		color.NoColor = true
 	}
 
 	all := *flagAll
+	errorCode := *flagErrorCode
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -66,6 +68,14 @@ func main() {
 			icons := color.HiRedString("%c%c%c", dirty, ahead, behind)
 
 			fmt.Printf("  %-*s %s %-*s\n", nameWidth, b.name, icons, upstreamWidth, upstream)
+		}
+	}
+
+	if errorCode {
+		for _, r := range repos {
+			if r.ChangesNotPushed() {
+				os.Exit(1)
+			}
 		}
 	}
 }
