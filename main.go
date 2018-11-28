@@ -15,6 +15,7 @@ func main() {
 	flagHelp := flag.Bool("help", false, "print this help")
 	flagNoColor := flag.Bool("no-color", false, "disable color")
 	flagErrorCode := flag.Bool("e", false, "exit with error code if changes not pushed")
+	flagFetchUpstream := flag.Bool("f", false, "fetch upstream")
 	flagAll := flag.Bool("a", false, "print all branches")
 
 	flag.Parse()
@@ -30,6 +31,7 @@ func main() {
 
 	all := *flagAll
 	errorCode := *flagErrorCode
+	fetchUpstream := *flagFetchUpstream
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -37,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	repos, err := getRepos(dir)
+	repos, err := getRepos(dir, fetchUpstream)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error getting git worktrees: %v", err)
 		os.Exit(1)
@@ -107,7 +109,7 @@ func (b branch) ChangesNotPushed() bool {
 	return b.dirty || b.ahead || b.behind || b.upstream == ""
 }
 
-func getRepos(dir string) ([]repo, error) {
+func getRepos(dir string, fetchUpstream bool) ([]repo, error) {
 	repos := []repo{}
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -123,7 +125,7 @@ func getRepos(dir string) ([]repo, error) {
 			return nil
 		}
 
-		repo, err := getRepo(path)
+		repo, err := getRepo(path, fetchUpstream)
 
 		repos = append(repos, repo)
 
@@ -132,7 +134,21 @@ func getRepos(dir string) ([]repo, error) {
 	return repos, err
 }
 
-func getRepo(path string) (repo, error) {
+func getRepo(path string, fetchUpstream bool) (repo, error) {
+	if fetchUpstream {
+		remotes, err := getBrancheRemotes(path)
+		if err != nil {
+			return repo{}, err
+		}
+
+		for _, r := range remotes {
+			err := fetch(path, r)
+			if err != nil {
+				return repo{}, err
+			}
+		}
+	}
+
 	branches, err := getBranches(path)
 	if err != nil {
 		return repo{}, err
@@ -193,7 +209,44 @@ func getBranches(path string) ([]branch, error) {
 	}
 
 	return branches, nil
+}
 
+func getBrancheRemotes(path string) ([]string, error) {
+	out := strings.Builder{}
+	cmd := exec.Command(
+		"git", "--no-pager", "branch", "--sort=committerdate",
+		"--format=%(upstream:remotename)",
+	)
+	cmd.Dir = path
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	remotes := strings.Split(strings.TrimSpace(out.String()), "\n")
+	remotesSeen := map[string]struct{}{}
+	for _, r := range remotes {
+		remotesSeen[r] = struct{}{}
+	}
+	dedupedRemotes := make([]string, 0, len(remotesSeen))
+	for r := range remotesSeen {
+		dedupedRemotes = append(dedupedRemotes, r)
+	}
+
+	return dedupedRemotes, nil
+}
+
+func fetch(path, remote string) error {
+	cmd := exec.Command("git", "--no-pager", "fetch", remote)
+	cmd.Dir = path
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func maxColumnWidths(repos []repo) (nameWidth, upstreamWidth int) {
