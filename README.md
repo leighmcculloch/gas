@@ -1,6 +1,6 @@
-# gs
+# gitallstatus
 
-Check the state of all your git worktrees.
+Check the state of all your git worktrees in subdirectories.
 
 ## Install
 
@@ -8,12 +8,12 @@ Check the state of all your git worktrees.
 
 Download the binary from the [releases][] page.
 
-[releases]: https://github.com/leighmcculloch/gs/releases
+[releases]: https://github.com/leighmcculloch/gitallstatus/releases
 
 ### From Source
 
 ```
-go get 4d63.com/gs
+go get 4d63.com/gitallstatus
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ Print a list of repositories in the current directory that have branches not
 pushed upstream, or dirty working directories:
 
 ```
-gs [-e] [-a]
+gitallstatus [-e] [-a]
 ```
 
 Add `-e` to exit with an error code if there are changes not pushed.
@@ -32,7 +32,7 @@ Add `-a` to print all branches.
 Example:
 
 ```
-$ gs
+$ gitallstatus
 fork-stretchr-testify/
   master               ↑  origin/master
   base                    <none>
@@ -43,4 +43,3 @@ helloworld/
   add-vcr-2           M   origin/add-vcr-2
   add-vcr              ↑↓ origin/add-vcr
 ```
-

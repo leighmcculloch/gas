@@ -1,4 +1,4 @@
-module 4d63.com/gs
+module 4d63.com/gitallstatus
 
 require (
 	github.com/fatih/color v1.7.0

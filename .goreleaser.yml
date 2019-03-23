@@ -1,5 +1,5 @@
 builds:
-  - binary: gs
+  - binary: gitallstatus
     goos:
       - linux
       - darwin
