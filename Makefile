@@ -1,6 +1,5 @@
-release:
-	rm -fr dist
-	goreleaser
+build:
+	go build
 
-setup:
-	go get github.com/goreleaser/goreleaser
+release:
+	go run goreleaser --rm-dist
