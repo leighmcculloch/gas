@@ -13,11 +13,3 @@ jobs:
           go-version: 1.13.x
       - uses: actions/checkout@v1
       - run: make build
-  generateandbuild:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v1
-        with:
-          go-version: 1.13.x
-      - uses: actions/checkout@v1
-      - run: make build
