@@ -2,4 +2,4 @@ build:
 	go build
 
 release:
-	go run goreleaser --rm-dist
+	go run github.com/goreleaser/goreleaser --rm-dist
