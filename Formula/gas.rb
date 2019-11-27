@@ -2,16 +2,16 @@
 class Gas < Formula
   desc "Check the state of all your git worktrees."
   homepage "https://4d63.com/gas"
-  version "3.0.0"
+  version "3.0.1"
   bottle :unneeded
 
   if OS.mac?
-    url "https://github.com/leighmcculloch/gas/releases/download/v3.0.0/gas_3.0.0_darwin_amd64.tar.gz"
-    sha256 "1d56a66d15463bdcc281f66891686036e4414e9b6a10d1a77714da434db44eb3"
+    url "https://github.com/leighmcculloch/gas/releases/download/v3.0.1/gas_3.0.1_darwin_amd64.tar.gz"
+    sha256 "1e2ac740e7bbb2426b8842844b134bb36a7de87e79eed6ed03713d7b2c492516"
   elsif OS.linux?
     if Hardware::CPU.intel?
-      url "https://github.com/leighmcculloch/gas/releases/download/v3.0.0/gas_3.0.0_linux_amd64.tar.gz"
-      sha256 "8a91d95bec8ff7627db205ee468a6c0eb44e84ae2de827a449cbef111887350f"
+      url "https://github.com/leighmcculloch/gas/releases/download/v3.0.1/gas_3.0.1_linux_amd64.tar.gz"
+      sha256 "1dd9bc11dda1c97e30782e2e09e03fbc3b8385361c9337e0eee46f89929a1a5d"
     end
   end
 
