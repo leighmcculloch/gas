@@ -11,7 +11,12 @@ import (
 	"github.com/fatih/color"
 )
 
+var version = "<dev>"
+var commit = ""
+var date = ""
+
 func main() {
+	flagVersion := flag.Bool("version", false, "print the version")
 	flagHelp := flag.Bool("help", false, "print this help")
 	flagNoColor := flag.Bool("no-color", false, "disable color")
 	flagErrorCode := flag.Bool("e", false, "exit with error code if changes not pushed")
@@ -19,6 +24,11 @@ func main() {
 	flagAll := flag.Bool("a", false, "print all branches")
 
 	flag.Parse()
+
+	if *flagVersion {
+		fmt.Fprintf(os.Stderr, "gas %s %s %s\n", version, commit, date)
+		return
+	}
 
 	if *flagHelp {
 		flag.Usage()
