@@ -2,6 +2,7 @@
 <p align="center">
 <a href="https://github.com/leighmcculloch/gas/actions"><img alt="Build" src="https://github.com/leighmcculloch/gas/workflows/build/badge.svg" /></a>
 <a href="https://goreportcard.com/report/github.com/leighmcculloch/gas"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/leighmcculloch/gas" /></a>
+<a href="https://github.com/leighmcculloch/gas/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/leighmcculloch/gas.svg" /></a>
 </p>
 
 Check the state of all your git worktrees in subdirectories.
