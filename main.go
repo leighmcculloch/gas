@@ -203,8 +203,15 @@ func getBranches(path string) ([]branch, error) {
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
-
-	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	outStr := strings.TrimSpace(out.String())
+	if outStr == "" {
+		headBranch, err := getHeadBranch(path)
+		if err != nil {
+			return nil, err
+		}
+		return []branch{{head: true, dirty: dirty, name: headBranch}}, nil
+	}
+	lines := strings.Split(outStr, "\n")
 	branches := make([]branch, len(lines))
 	for i, l := range lines {
 		f := strings.Split(l, ":")
@@ -219,6 +226,26 @@ func getBranches(path string) ([]branch, error) {
 	}
 
 	return branches, nil
+}
+
+func getHeadBranch(path string) (string, error) {
+	out := strings.Builder{}
+	cmd := exec.Command(
+		"git", "--no-pager", "symbolic-ref", "HEAD",
+	)
+	cmd.Dir = path
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	outStr := strings.TrimSpace(out.String())
+	if outStr == "" {
+		return "", nil
+	}
+	branchName := strings.Replace(outStr, "refs/heads/", "", 1)
+	return branchName, nil
 }
 
 func getBrancheRemotes(path string) ([]string, error) {
