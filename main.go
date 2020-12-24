@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,23 +17,33 @@ var commit = ""
 var date = ""
 
 func main() {
+	exitCode := run(os.Args, os.Stdin, os.Stdout, os.Stderr)
+	os.Exit(exitCode)
+}
+
+func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
+	flag := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	flag.SetOutput(stderr)
 	flagVersion := flag.Bool("version", false, "print the version")
 	flagHelp := flag.Bool("help", false, "print this help")
 	flagNoColor := flag.Bool("no-color", false, "disable color")
 	flagErrorCode := flag.Bool("e", false, "exit with error code if changes not pushed")
 	flagFetchUpstream := flag.Bool("f", false, "fetch upstream")
 	flagAll := flag.Bool("a", false, "print all branches")
-
-	flag.Parse()
+	err := flag.Parse(args[1:])
+	if err != nil {
+		fmt.Fprintf(stderr, "%v\n", err)
+		return 2
+	}
 
 	if *flagVersion {
-		fmt.Fprintf(os.Stderr, "gas %s %s %s\n", version, commit, date)
-		return
+		fmt.Fprintf(stderr, "gas %s %s %s\n", version, commit, date)
+		return 0
 	}
 
 	if *flagHelp {
 		flag.Usage()
-		return
+		return 0
 	}
 
 	if *flagNoColor {
@@ -45,14 +56,14 @@ func main() {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error getting current directory: %v", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "error getting current directory: %v", err)
+		return 1
 	}
 
 	repos, err := getRepos(dir, fetchUpstream)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error getting git worktrees: %v", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "error getting git worktrees: %v", err)
+		return 1
 	}
 
 	nameWidth, upstreamWidth := maxColumnWidths(repos)
@@ -65,7 +76,7 @@ func main() {
 		if err != nil {
 			relPath = r.path
 		}
-		fmt.Printf("%s%c\n", relPath, filepath.Separator)
+		fmt.Fprintf(stdout, "%s%c\n", relPath, filepath.Separator)
 		for _, b := range r.branches {
 			if !all && !b.ChangesNotPushed() {
 				continue
@@ -79,17 +90,19 @@ func main() {
 
 			icons := color.HiRedString("%c%c%c", dirty, ahead, behind)
 
-			fmt.Printf("  %-*s %s %-*s\n", nameWidth, b.name, icons, upstreamWidth, upstream)
+			fmt.Fprintf(stdout, "  %-*s %s %-*s\n", nameWidth, b.name, icons, upstreamWidth, upstream)
 		}
 	}
 
 	if errorCode {
 		for _, r := range repos {
 			if r.ChangesNotPushed() {
-				os.Exit(1)
+				return 1
 			}
 		}
 	}
+
+	return 0
 }
 
 type repo struct {
@@ -197,7 +210,7 @@ func getBranches(path string) ([]branch, error) {
 		"--format=%(HEAD):%(refname:short):%(upstream:trackshort):%(upstream:short)",
 	)
 	cmd.Dir = path
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -234,7 +247,7 @@ func getHeadBranch(path string) (string, error) {
 		"git", "--no-pager", "symbolic-ref", "HEAD",
 	)
 	cmd.Dir = path
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -255,7 +268,7 @@ func getBrancheRemotes(path string) ([]string, error) {
 		"--format=%(upstream:remotename)",
 	)
 	cmd.Dir = path
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -278,7 +291,7 @@ func getBrancheRemotes(path string) ([]string, error) {
 func fetch(path, remote string) error {
 	cmd := exec.Command("git", "--no-pager", "fetch", remote)
 	cmd.Dir = path
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err

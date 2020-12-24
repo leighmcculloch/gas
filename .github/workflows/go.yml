@@ -1,0 +1,23 @@
+name: go
+on:
+  schedule:
+      - cron:  '0 0 * * 0' # every 7 days on Sunday
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1
+      - uses: actions/checkout@v1
+      - run: make build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1
+      - uses: actions/checkout@v1
+      - run: make test
