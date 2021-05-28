@@ -9,25 +9,22 @@ import (
 )
 
 func setupGit(t *testing.T) {
-	h := testcli.Helper{TB: t}
-	dir := h.MkdirTemp()
+	dir := testcli.MkdirTemp(t)
 	os.Setenv("HOME", dir)
-	h.Exec("git config --global user.email 'tests@example.com'")
-	h.Exec("git config --global user.name 'Tests'")
+	testcli.Exec(t, "git config --global user.email 'tests@example.com'")
+	testcli.Exec(t, "git config --global user.name 'Tests'")
 }
 
 func TestNoRemote(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -38,16 +35,14 @@ func TestNoRemote(t *testing.T) {
 func TestNoRemoteUntrackedFiles(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.WriteFile("file1", []byte{})
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -58,17 +53,15 @@ func TestNoRemoteUntrackedFiles(t *testing.T) {
 func TestNoRemoteStagedFiles(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -79,18 +72,16 @@ func TestNoRemoteStagedFiles(t *testing.T) {
 func TestNoRemoteCommitted(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -101,25 +92,23 @@ func TestNoRemoteCommitted(t *testing.T) {
 func TestRemoteCommittedPushed(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote := h.MkdirTemp()
-	h.Chdir(remote)
-	h.Exec("git init --bare")
-	h.Exec("git status")
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, ``)
@@ -128,26 +117,24 @@ func TestRemoteCommittedPushed(t *testing.T) {
 func TestRemoteUntracked(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote := h.MkdirTemp()
-	h.Chdir(remote)
-	h.Exec("git init --bare")
-	h.Exec("git status")
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.WriteFile("file2", []byte{})
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.WriteFile(t, "file2", []byte{})
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -158,27 +145,25 @@ func TestRemoteUntracked(t *testing.T) {
 func TestRemoteStaged(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote := h.MkdirTemp()
-	h.Chdir(remote)
-	h.Exec("git init --bare")
-	h.Exec("git status")
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.WriteFile("file2", []byte{})
-	h.Exec("git add . -v")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -189,29 +174,27 @@ func TestRemoteStaged(t *testing.T) {
 func TestRemoteNotPushed(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote := h.MkdirTemp()
-	h.Chdir(remote)
-	h.Exec("git init --bare")
-	h.Exec("git status")
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.WriteFile("file2", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add more files'")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add more files'")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -222,32 +205,30 @@ func TestRemoteNotPushed(t *testing.T) {
 func TestRemoteNotPushedOtherBranch(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote := h.MkdirTemp()
-	h.Chdir(remote)
-	h.Exec("git init --bare")
-	h.Exec("git status")
-
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.Exec("git checkout -b branch1")
-	h.WriteFile("file2", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add more files'")
-	h.Exec("git status")
-	h.Exec("git checkout -")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -b branch1")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add more files'")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -")
+	testcli.Exec(t, "git status")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
@@ -258,59 +239,57 @@ func TestRemoteNotPushedOtherBranch(t *testing.T) {
 func TestMultipleRepos(t *testing.T) {
 	setupGit(t)
 
-	h := testcli.Helper{TB: t}
+	remote1 := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote1)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote1 := h.MkdirTemp()
-	h.Chdir(remote1)
-	h.Exec("git init --bare")
-	h.Exec("git status")
+	remote2 := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote2)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
 
-	remote2 := h.MkdirTemp()
-	h.Chdir(remote2)
-	h.Exec("git init --bare")
-	h.Exec("git status")
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
 
-	dir := h.MkdirTemp()
-	h.Chdir(dir)
+	testcli.Mkdir(t, "repo1")
+	testcli.Chdir(t, "repo1")
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote1)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -b branch1")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add more files'")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -")
+	testcli.Exec(t, "git status")
+	testcli.Chdir(t, "..")
 
-	h.Mkdir("repo1")
-	h.Chdir("repo1")
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote1)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.Exec("git checkout -b branch1")
-	h.WriteFile("file2", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add more files'")
-	h.Exec("git status")
-	h.Exec("git checkout -")
-	h.Exec("git status")
-	h.Chdir("..")
-
-	h.Mkdir("repo2")
-	h.Chdir("repo2")
-	h.Exec("git init")
-	h.Exec("git remote add origin " + remote2)
-	h.WriteFile("file1", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add files'")
-	h.Exec("git push -u origin HEAD")
-	h.Exec("git status")
-	h.Exec("git checkout -b branch1")
-	h.WriteFile("file2", []byte{})
-	h.Exec("git add . -v")
-	h.Exec("git commit -m 'Add more files'")
-	h.Exec("git status")
-	h.Exec("git checkout -")
-	h.Exec("git status")
-	h.Chdir("..")
+	testcli.Mkdir(t, "repo2")
+	testcli.Chdir(t, "repo2")
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote2)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add files'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -b branch1")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add more files'")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -")
+	testcli.Exec(t, "git status")
+	testcli.Chdir(t, "..")
 
 	args := []string{"gas", "-no-color"}
-	exitCode, stdout, stderr := h.Main(args, nil, run)
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `repo1/

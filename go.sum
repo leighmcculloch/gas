@@ -1,5 +1,5 @@
-4d63.com/testcli v0.0.0-20210109214154-c990b0f8dfb6 h1:khw3qj4I3wJtZuy+HwkdiogtohZt4pAySN2bLa5ab3k=
-4d63.com/testcli v0.0.0-20210109214154-c990b0f8dfb6/go.mod h1:57yWQqqFDV9dcVt+Igf3WLqHNe3pKrWVzhcbYHlLv/o=
+4d63.com/testcli v0.0.0-20210528064305-ddd2d1fb501c h1:/HwY+VSONF1G3ybgGX4qeD9OryPknv/+1NOJmDIMgi4=
+4d63.com/testcli v0.0.0-20210528064305-ddd2d1fb501c/go.mod h1:57yWQqqFDV9dcVt+Igf3WLqHNe3pKrWVzhcbYHlLv/o=
 4d63.com/want v0.0.0-20210109064425-61c1223b2d76 h1:I84Klmk/w0ujuldeGMB56Pueg+NOVQffcNAggbjmqsM=
 4d63.com/want v0.0.0-20210109064425-61c1223b2d76/go.mod h1:D1pdAsDozTk8o33US/TNMnwc3BTz98HgNHdgYNN3+UY=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
