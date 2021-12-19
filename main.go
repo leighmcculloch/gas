@@ -96,7 +96,12 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 
 			authorDate := color.HiGreenString("%*s", authorDateWidth, b.authorDate)
 
-			fmt.Fprintf(stdout, "  %-*s %s %-*s %s %s\n", nameWidth, b.name, icons, upstreamWidth, upstream, authorDate, b.commitMessageSubject)
+			commitMessageSubject := b.commitMessageSubject
+			if len(commitMessageSubject) > 50 {
+				commitMessageSubject = commitMessageSubject[:50]
+			}
+
+			fmt.Fprintf(stdout, "  %-*s %s %-*s %s %s\n", nameWidth, b.name, icons, upstreamWidth, upstream, authorDate, commitMessageSubject)
 		}
 	}
 
