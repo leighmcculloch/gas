@@ -133,7 +133,7 @@ type branch struct {
 }
 
 func (b branch) ChangesNotPushed() bool {
-	return b.dirty || b.ahead || b.behind || b.upstream == ""
+	return b.dirty || b.ahead || b.upstream == ""
 }
 
 func getRepos(dir string, fetchUpstream bool) ([]repo, error) {

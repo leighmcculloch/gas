@@ -1,5 +1,5 @@
-4d63.com/testcli v0.0.0-20210109214154-c990b0f8dfb6 h1:khw3qj4I3wJtZuy+HwkdiogtohZt4pAySN2bLa5ab3k=
-4d63.com/testcli v0.0.0-20210109214154-c990b0f8dfb6/go.mod h1:57yWQqqFDV9dcVt+Igf3WLqHNe3pKrWVzhcbYHlLv/o=
+4d63.com/testcli v0.0.0-20210528064305-ddd2d1fb501c h1:/HwY+VSONF1G3ybgGX4qeD9OryPknv/+1NOJmDIMgi4=
+4d63.com/testcli v0.0.0-20210528064305-ddd2d1fb501c/go.mod h1:57yWQqqFDV9dcVt+Igf3WLqHNe3pKrWVzhcbYHlLv/o=
 4d63.com/want v0.0.0-20210109064425-61c1223b2d76 h1:I84Klmk/w0ujuldeGMB56Pueg+NOVQffcNAggbjmqsM=
 4d63.com/want v0.0.0-20210109064425-61c1223b2d76/go.mod h1:D1pdAsDozTk8o33US/TNMnwc3BTz98HgNHdgYNN3+UY=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -182,8 +182,9 @@ github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLD
 github.com/tj/go-elastic v0.0.0-20171221160941-36157cbbebc2/go.mod h1:WjeM0Oo1eNAjXGDx2yma7uG2XoyRZTq1uv3M/o7imD0=
 github.com/tj/go-kinesis v0.0.0-20171128231115-08b17f58cb1b/go.mod h1:/yhzCV0xPfx6jb1bBgRFjl5lytqVqZXEaeqWP8lTEao=
 github.com/tj/go-spin v1.1.0/go.mod h1:Mg1mzmePZm4dva8Qz60H2lHwmJ2loum4VIrLgVnKwh4=
-github.com/ulikunitz/xz v0.5.6 h1:jGHAfXawEGZQ3blwU5wnWKQJvAraT7Ftq9EXjnXYgt8=
 github.com/ulikunitz/xz v0.5.6/go.mod h1:2bypXElzHzzJZwzH67Y6wb67pO62Rzfn7BSiF4ABRW8=
+github.com/ulikunitz/xz v0.5.8 h1:ERv8V6GKqVi23rgu5cj9pVfVzJbOqAY2Ntl88O6c2nQ=
+github.com/ulikunitz/xz v0.5.8/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/xanzy/go-gitlab v0.22.1 h1:TVxgHmoa35jQL+9FCkG0nwPDxU9dQZXknBTDtGaSFno=
 github.com/xanzy/go-gitlab v0.22.1/go.mod h1:t4Bmvnxj7k37S4Y17lfLx+nLqkf/oQwT2HagfWKv5Og=
 github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 h1:nIPpBwaJSVYIxUFsDv3M8ofmx9yWTog9BfvIu0q41lo=
