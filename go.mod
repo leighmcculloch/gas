@@ -1,4 +1,4 @@
-module 4d63.com/gas
+module 4d63.com/gas/v3
 
 require (
 	4d63.com/testcli v0.0.0-20210528064305-ddd2d1fb501c
