@@ -47,12 +47,12 @@ Example:
 ```
 $ gas
 fork-stretchr-testify/
-  master               ↑  origin/master
-  base                    <none>
+  master               ↑  origin/master    15 minutes ago Add new assertion
+  base                    <none>              7 hours ago Fix test
 gs/
-  master               ↑↓ origin/master
+  master               ↑↓ origin/master      3 months ago Release version 2.1.0
 helloworld/
-  push-with-request       <none>
-  add-vcr-2           M   origin/add-vcr-2
-  add-vcr              ↑↓ origin/add-vcr
+  push-with-request       <none>             23 hours ago Add push with request
+  add-vcr-2           M   origin/add-vcr-2  12 months ago Add vcr
+  add-vcr              ↑↓ origin/add-vcr    12 months ago Add vcr
 ```

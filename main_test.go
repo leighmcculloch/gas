@@ -28,7 +28,7 @@ func TestNoRemote(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master     <none>
+  master     <none>  
 `)
 }
 
@@ -46,7 +46,7 @@ func TestNoRemoteUntrackedFiles(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master M   <none>
+  master M   <none>  
 `)
 }
 
@@ -65,7 +65,7 @@ func TestNoRemoteStagedFiles(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master M   <none>
+  master M   <none>  
 `)
 }
 
@@ -85,7 +85,7 @@ func TestNoRemoteCommitted(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master     <none>
+  master     <none> 0 seconds ago Add files
 `)
 }
 
@@ -138,7 +138,7 @@ func TestRemoteUntracked(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master M   origin/master
+  master M   origin/master 0 seconds ago Add files
 `)
 }
 
@@ -167,7 +167,7 @@ func TestRemoteStaged(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master M   origin/master
+  master M   origin/master 0 seconds ago Add files
 `)
 }
 
@@ -198,7 +198,7 @@ func TestRemoteNotPushed(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  master  ↑  origin/master
+  master  ↑  origin/master 0 seconds ago Add more files
 `)
 }
 
@@ -232,7 +232,7 @@ func TestRemoteNotPushedOtherBranch(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  branch1     <none>       
+  branch1     <none> 0 seconds ago Add more files
 `)
 }
 
@@ -273,7 +273,7 @@ func TestRemoteNotPulledBranch(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  branch1     <none>       
+  branch1     <none> 0 seconds ago Add file 3
 `)
 }
 
@@ -334,8 +334,8 @@ func TestMultipleRepos(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `repo1/
-  branch1     <none>       
+  branch1     <none> 0 seconds ago Add more files
 repo2/
-  branch1     <none>       
+  branch1     <none> 0 seconds ago Add more files
 `)
 }

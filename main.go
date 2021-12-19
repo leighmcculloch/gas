@@ -66,7 +66,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 		return 1
 	}
 
-	nameWidth, upstreamWidth := maxColumnWidths(repos)
+	nameWidth, upstreamWidth, authorDateWidth := maxColumnWidths(repos, all)
 
 	for _, r := range repos {
 		if !all && !r.ChangesNotPushed() {
@@ -84,13 +84,24 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 
 			dirty, ahead, behind := iconChars(b)
 			upstream := b.upstream
+			upstreamWidth := upstreamWidth
 			if upstream == "" {
 				upstream = color.HiRedString("<none>")
+				// Increase upstream width by the width of invisible characters
+				// to compensate for width expansion that occurs in the Fprintf.
+				upstreamWidth += len(upstream) - len("<none>")
 			}
 
 			icons := color.HiRedString("%c%c%c", dirty, ahead, behind)
 
-			fmt.Fprintf(stdout, "  %-*s %s %-*s\n", nameWidth, b.name, icons, upstreamWidth, upstream)
+			authorDate := color.HiGreenString("%*s", authorDateWidth, b.authorDate)
+
+			commitMessageSubject := b.commitMessageSubject
+			if len(commitMessageSubject) > 50 {
+				commitMessageSubject = commitMessageSubject[:50]
+			}
+
+			fmt.Fprintf(stdout, "  %-*s %s %-*s %s %s\n", nameWidth, b.name, icons, upstreamWidth, upstream, authorDate, commitMessageSubject)
 		}
 	}
 
@@ -120,12 +131,14 @@ func (r repo) ChangesNotPushed() bool {
 }
 
 type branch struct {
-	head     bool
-	name     string
-	dirty    bool
-	ahead    bool
-	behind   bool
-	upstream string
+	head                 bool
+	name                 string
+	dirty                bool
+	ahead                bool
+	behind               bool
+	upstream             string
+	authorDate           string
+	commitMessageSubject string
 }
 
 func (b branch) ChangesNotPushed() bool {
@@ -207,7 +220,7 @@ func getBranches(path string) ([]branch, error) {
 	out := strings.Builder{}
 	cmd := exec.Command(
 		"git", "--no-pager", "branch", "--sort=committerdate",
-		"--format=%(HEAD):%(refname:short):%(upstream:trackshort):%(upstream:short)",
+		"--format=%(HEAD):%(refname:short):%(upstream:trackshort):%(upstream:short):%(authordate:relative):%(contents:subject)",
 	)
 	cmd.Dir = path
 	cmd.Stdin = nil
@@ -227,14 +240,16 @@ func getBranches(path string) ([]branch, error) {
 	lines := strings.Split(outStr, "\n")
 	branches := make([]branch, len(lines))
 	for i, l := range lines {
-		f := strings.Split(l, ":")
+		f := strings.SplitN(l, ":", 6)
 		branches[i] = branch{
-			head:     f[0] == "*",
-			dirty:    f[0] == "*" && dirty,
-			name:     f[1],
-			ahead:    f[2] == ">" || f[2] == "<>",
-			behind:   f[2] == "<" || f[2] == "<>",
-			upstream: f[3],
+			head:                 f[0] == "*",
+			dirty:                f[0] == "*" && dirty,
+			name:                 f[1],
+			ahead:                f[2] == ">" || f[2] == "<>",
+			behind:               f[2] == "<" || f[2] == "<>",
+			upstream:             f[3],
+			authorDate:           f[4],
+			commitMessageSubject: f[5],
 		}
 	}
 
@@ -299,14 +314,23 @@ func fetch(path, remote string) error {
 	return nil
 }
 
-func maxColumnWidths(repos []repo) (nameWidth, upstreamWidth int) {
+func maxColumnWidths(repos []repo, all bool) (nameWidth, upstreamWidth, authorDateWidth int) {
 	for _, r := range repos {
+		if !all && !r.ChangesNotPushed() {
+			continue
+		}
 		for _, b := range r.branches {
+			if !all && !b.ChangesNotPushed() {
+				continue
+			}
 			if len(b.name) > nameWidth {
 				nameWidth = len(b.name)
 			}
 			if len(b.upstream) > upstreamWidth {
 				upstreamWidth = len(b.upstream)
+			}
+			if len(b.authorDate) > authorDateWidth {
+				authorDateWidth = len(b.authorDate)
 			}
 		}
 	}
