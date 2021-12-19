@@ -232,7 +232,7 @@ func TestRemoteNotPushedOtherBranch(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  branch1     <none>        0 seconds ago Add more files
+  branch1     <none> 0 seconds ago Add more files
 `)
 }
 
@@ -273,7 +273,7 @@ func TestRemoteNotPulledBranch(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `./
-  branch1     <none>        0 seconds ago Add file 3
+  branch1     <none> 0 seconds ago Add file 3
 `)
 }
 
@@ -334,8 +334,8 @@ func TestMultipleRepos(t *testing.T) {
 	want.Eq(t, exitCode, 0)
 	want.Eq(t, stderr, "")
 	want.Eq(t, stdout, `repo1/
-  branch1     <none>        0 seconds ago Add more files
+  branch1     <none> 0 seconds ago Add more files
 repo2/
-  branch1     <none>        0 seconds ago Add more files
+  branch1     <none> 0 seconds ago Add more files
 `)
 }
