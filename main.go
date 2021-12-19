@@ -235,7 +235,7 @@ func getBranches(path string) ([]branch, error) {
 	lines := strings.Split(outStr, "\n")
 	branches := make([]branch, len(lines))
 	for i, l := range lines {
-		f := strings.Split(l, ":")
+		f := strings.SplitN(l, ":", 6)
 		branches[i] = branch{
 			head:                 f[0] == "*",
 			dirty:                f[0] == "*" && dirty,
