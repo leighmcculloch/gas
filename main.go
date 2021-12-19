@@ -66,7 +66,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 		return 1
 	}
 
-	nameWidth, upstreamWidth, authorDateWidth := maxColumnWidths(repos)
+	nameWidth, upstreamWidth, authorDateWidth := maxColumnWidths(repos, all)
 
 	for _, r := range repos {
 		if !all && !r.ChangesNotPushed() {
@@ -84,8 +84,12 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 
 			dirty, ahead, behind := iconChars(b)
 			upstream := b.upstream
+			upstreamWidth := upstreamWidth
 			if upstream == "" {
 				upstream = color.HiRedString("<none>")
+				// Increase upstream width by the width of invisible characters
+				// to compensate for width expansion that occurs in the Fprintf.
+				upstreamWidth += len(upstream) - len("<none>")
 			}
 
 			icons := color.HiRedString("%c%c%c", dirty, ahead, behind)
@@ -305,9 +309,15 @@ func fetch(path, remote string) error {
 	return nil
 }
 
-func maxColumnWidths(repos []repo) (nameWidth, upstreamWidth, authorDateWidth int) {
+func maxColumnWidths(repos []repo, all bool) (nameWidth, upstreamWidth, authorDateWidth int) {
 	for _, r := range repos {
+		if !all && !r.ChangesNotPushed() {
+			continue
+		}
 		for _, b := range r.branches {
+			if !all && !b.ChangesNotPushed() {
+				continue
+			}
 			if len(b.name) > nameWidth {
 				nameWidth = len(b.name)
 			}
