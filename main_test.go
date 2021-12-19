@@ -236,6 +236,47 @@ func TestRemoteNotPushedOtherBranch(t *testing.T) {
 `)
 }
 
+func TestRemoteNotPulledBranch(t *testing.T) {
+	setupGit(t)
+
+	remote := testcli.MkdirTemp(t)
+	testcli.Chdir(t, remote)
+	testcli.Exec(t, "git init --bare")
+	testcli.Exec(t, "git status")
+
+	dir := testcli.MkdirTemp(t)
+	testcli.Chdir(t, dir)
+	testcli.Exec(t, "git init")
+	testcli.Exec(t, "git remote add origin "+remote)
+	testcli.WriteFile(t, "file1", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add file 1'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.WriteFile(t, "file2", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add file 2'")
+	testcli.Exec(t, "git push -u origin HEAD")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git reset --hard HEAD~1")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -b branch1")
+	testcli.WriteFile(t, "file3", []byte{})
+	testcli.Exec(t, "git add . -v")
+	testcli.Exec(t, "git commit -m 'Add file 3'")
+	testcli.Exec(t, "git status")
+	testcli.Exec(t, "git checkout -")
+	testcli.Exec(t, "git status")
+
+	args := []string{"gas", "-no-color"}
+	exitCode, stdout, stderr := testcli.Main(t, args, nil, run)
+	want.Eq(t, exitCode, 0)
+	want.Eq(t, stderr, "")
+	want.Eq(t, stdout, `./
+  branch1     <none>       
+`)
+}
+
 func TestMultipleRepos(t *testing.T) {
 	setupGit(t)
 
