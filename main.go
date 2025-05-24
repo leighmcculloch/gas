@@ -156,6 +156,12 @@ func getRepos(dir string, fetchUpstream bool) ([]repo, error) {
 			return nil
 		}
 
+		// Check if this is a bare repository - skip it if it is
+		isBare, _ := isBareRepo(path)
+		if isBare {
+			return filepath.SkipDir
+		}
+
 		dotGitFileInfo, err := os.Stat(filepath.Join(path, ".git"))
 		if os.IsNotExist(err) || !dotGitFileInfo.IsDir() {
 			return nil
@@ -335,6 +341,21 @@ func maxColumnWidths(repos []repo, all bool) (nameWidth, upstreamWidth, authorDa
 		}
 	}
 	return
+}
+
+func isBareRepo(path string) (bool, error) {
+	// Check if this is a bare repository using git command
+	out := strings.Builder{}
+	cmd := exec.Command("git", "rev-parse", "--is-bare-repository")
+	cmd.Dir = path
+	cmd.Stdout = &out
+	cmd.Stderr = nil
+	
+	if err := cmd.Run(); err != nil {
+		return false, nil // Not a git repository at all
+	}
+	
+	return strings.TrimSpace(out.String()) == "true", nil
 }
 
 func iconChars(b branch) (dirty, ahead, behind rune) {
