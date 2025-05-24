@@ -156,22 +156,39 @@ func getRepos(dir string, fetchUpstream bool) ([]repo, error) {
 			return nil
 		}
 
-		// Check if this is a bare repository - skip it if it is
-		isBare, _ := isBareRepo(path)
-		if isBare {
-			return filepath.SkipDir
+		// Skip .git directories if they're bare
+		if filepath.Base(path) == ".git" {
+			isBare, _ := isBareRepo(path)
+			if isBare {
+				return filepath.SkipDir
+			}
+		} else {
+			// For non-.git directories, check if they're bare repositories
+			isBare, _ := isBareRepo(path)
+			if isBare {
+				return filepath.SkipDir
+			}
+
+			// Check for a .git directory
+			dotGitPath := filepath.Join(path, ".git")
+			dotGitFileInfo, err := os.Stat(dotGitPath)
+			if err == nil && dotGitFileInfo.IsDir() {
+				// Check if the .git directory is bare before trying to process it
+				isDotGitBare, _ := isBareRepo(dotGitPath)
+				if isDotGitBare {
+					return nil // Skip this directory, but allow scanning of other directories
+				}
+				
+				// This is a regular git repository
+				repo, err := getRepo(path, fetchUpstream)
+				if err == nil {
+					repos = append(repos, repo)
+				}
+				return filepath.SkipDir
+			}
 		}
 
-		dotGitFileInfo, err := os.Stat(filepath.Join(path, ".git"))
-		if os.IsNotExist(err) || !dotGitFileInfo.IsDir() {
-			return nil
-		}
-
-		repo, err := getRepo(path, fetchUpstream)
-
-		repos = append(repos, repo)
-
-		return filepath.SkipDir
+		return nil
 	})
 	return repos, err
 }
@@ -344,7 +361,27 @@ func maxColumnWidths(repos []repo, all bool) (nameWidth, upstreamWidth, authorDa
 }
 
 func isBareRepo(path string) (bool, error) {
-	// Check if this is a bare repository using git command
+	// Special case: if the path itself is not ".git" but contains a bare ".git" repository,
+	// don't mark the parent directory as bare
+	if filepath.Base(path) != ".git" {
+		dotGitPath := filepath.Join(path, ".git")
+		if info, err := os.Stat(dotGitPath); err == nil && info.IsDir() {
+			// The directory has a .git subdirectory
+			// Check if that .git directory is bare - if so, don't mark the parent as bare
+			out := strings.Builder{}
+			cmd := exec.Command("git", "rev-parse", "--is-bare-repository")
+			cmd.Dir = dotGitPath
+			cmd.Stdout = &out
+			cmd.Stderr = nil
+			
+			if err := cmd.Run(); err == nil && strings.TrimSpace(out.String()) == "true" {
+				// The .git subdirectory is bare, but we don't want to mark the parent as bare
+				return false, nil
+			}
+		}
+	}
+
+	// Normal check for bare repository
 	out := strings.Builder{}
 	cmd := exec.Command("git", "rev-parse", "--is-bare-repository")
 	cmd.Dir = path
