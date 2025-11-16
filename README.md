@@ -10,14 +10,6 @@ Checks for any untracked or modified files, and any unpushed branches in all git
 
 ## Install
 
-### Binary (Linux; macOS; Windows)
-
-Download the binary from the [releases][] page.
-
-[releases]: https://github.com/leighmcculloch/gas/releases
-
-### From Source
-
 ```
 go install github.com/leighmcculloch/gas/v3@latest
 ```
