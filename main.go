@@ -7,14 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/fatih/color"
 )
-
-var version = "<dev>"
-var commit = ""
-var date = ""
 
 func main() {
 	exitCode := run(os.Args, os.Stdin, os.Stdout, os.Stderr)
@@ -37,7 +34,11 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) int
 	}
 
 	if *flagVersion {
-		fmt.Fprintf(stderr, "gas %s %s %s\n", version, commit, date)
+		if info, ok := debug.ReadBuildInfo(); ok {
+			fmt.Fprintf(stderr, "gas %s\n", info.Main.Version)
+		} else {
+			fmt.Fprintf(stderr, "gas version unknown\n")
+		}
 		return 0
 	}
 
