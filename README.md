@@ -26,7 +26,7 @@ brew install 4d63/gas/gas
 ### From Source
 
 ```
-go install 4d63.com/gas/v3@latest
+go install github.com/leighmcculloch/gas/v3@latest
 ```
 
 ## Usage
