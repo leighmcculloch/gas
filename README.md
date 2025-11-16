@@ -16,12 +16,6 @@ Download the binary from the [releases][] page.
 
 [releases]: https://github.com/leighmcculloch/gas/releases
 
-### Homebrew (Linux; macOS)
-
-```
-brew install 4d63/gas/gas
-```
-
 ### From Source
 
 ```
